@@ -4,15 +4,16 @@ from pytube import YouTube
 from pytube import Search
 
 yt = YouTube
+s = Search
 
 # Crear un objeto de autenticación con el ID del cliente y el secreto del cliente
-auth_manager = SpotifyClientCredentials(client_id='tu_id_de_cliente', client_secret='tu_secreto_de_cliente')
+auth_manager = SpotifyClientCredentials(client_id='d67481b0a3134e21a4870f42f4988bf3', client_secret='a3bd5765d10a4b66991097d607e4cde9')
 
 # Crear un objeto de la API de Spotify con el objeto de autenticación
 spotify = spotipy.Spotify(auth_manager=auth_manager)
 
 # Definir el enlace de la playlist
-link = 'https://open.spotify.com/playlist/2ZH6fPLGbx4UkR4d6sSoU3'
+link = 'https://open.spotify.com/playlist/1wYxDvyqoe1YWQzZvXfcCz'
 
 # Extraer el ID de la playlist del enlace
 playlist_id = link.split('/')[-1]
@@ -34,10 +35,14 @@ while offset < total:
   # Recorrer los resultados y extraer los datos relevantes
   for item in results['items']:
     song_name = item['track']['name']
-    artist_name = item['track']['artists'][0]['name']
+    artist_name = item['track']['artists'][0]['name']   
     songs.append((song_name, artist_name))
   offset += limit
 
 # Mostrar la lista de canciones
 for song in songs:
-    print(song)
+    search = s(song[0] + ' - ' + song[1])
+    print('Title')
+    print(search.results[0].title)
+    print('Link')
+    print(search.results[0].watch_url)
