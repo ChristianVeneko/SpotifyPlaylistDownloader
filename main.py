@@ -1,5 +1,9 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from pytube import YouTube
+from pytube import Search
+
+yt = YouTube
 
 # Crear un objeto de autenticación con el ID del cliente y el secreto del cliente
 auth_manager = SpotifyClientCredentials(client_id='tu_id_de_cliente', client_secret='tu_secreto_de_cliente')
@@ -34,3 +38,6 @@ while offset < total:
     songs.append((song_name, artist_name))
   offset += limit
 
+# Mostrar la lista de canciones
+for song in songs:
+    print(song)
