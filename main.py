@@ -1,8 +1,10 @@
 import spotipy
+import os
 from spotipy.oauth2 import SpotifyClientCredentials
 from pytube import YouTube
 from pytube import Search
 
+# Crear Variables de Youtube y Search de youtube
 yt = YouTube
 s = Search
 
@@ -28,6 +30,10 @@ limit = 50
 # Obtener el número total de elementos de la playlist
 total = spotify.playlist_items(playlist_id, limit=1)['total']
 
+# Obtener el titulo de la playlist
+playlist_data = spotify.playlist(playlist_id)
+playlistTitle = playlist_data["name"]
+
 # Recorrer los elementos de la playlist por lotes de 50
 while offset < total:
   # Obtener los elementos de la playlist con el offset y el límite actuales
@@ -40,6 +46,12 @@ while offset < total:
   offset += limit
 
 # Mostrar la lista de canciones
+
+def createFolder(title):
+    
+    return
+    
+
 for song in songs:
     search = s(song[0] + ' - ' + song[1])
     print('Title')
