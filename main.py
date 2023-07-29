@@ -15,7 +15,7 @@ auth_manager = SpotifyClientCredentials(client_id='d67481b0a3134e21a4870f42f4988
 spotify = spotipy.Spotify(auth_manager=auth_manager)
 
 # Definir el enlace de la playlist
-link = 'https://open.spotify.com/playlist/1wYxDvyqoe1YWQzZvXfcCz'
+link = 'https://open.spotify.com/playlist/7mRg9eazDDFtr3TVaBpVtD'
 
 # Extraer el ID de la playlist del enlace
 playlist_id = link.split('/')[-1]
@@ -45,16 +45,39 @@ while offset < total:
     songs.append((song_name, artist_name))
   offset += limit
 
-# Mostrar la lista de canciones
-
+# Funcion para crear las carpetas de las canciones
 def createFolder(title):
+    rutaActual = os.getcwd()
+
+    # Nombre de la carpeta que quieres crear
+    downloadFolder = "Downloads"
+
+    # Ruta completa de la carpeta que quieres crear
+    rutaDownloadFolder = os.path.join(rutaActual, downloadFolder)
+
+    # Crear la carpeta si no existe
+    if not os.path.exists(rutaDownloadFolder):
+        os.mkdir(rutaDownloadFolder)
+
+    playlistFolder = title
+
+    # Ruta completa de la subcarpeta que quieres crear
+    rutaPlaylistFolder = os.path.join(rutaDownloadFolder, playlistFolder)
+
+    # Crear la subcarpeta si no existe
+    if not os.path.exists(rutaPlaylistFolder):
+        os.mkdir(rutaPlaylistFolder)
     
-    return
+    return rutaPlaylistFolder
     
 
 for song in songs:
     search = s(song[0] + ' - ' + song[1])
-    print('Title')
-    print(search.results[0].title)
-    print('Link')
-    print(search.results[0].watch_url)
+    # print('Title')
+    # print(search.results[0].title)
+    # print('Link')
+    # print(search.results[0].watch_url)
+    
+    playlistFolder = createFolder(playlistTitle)
+
+print(playlistFolder)
