@@ -15,8 +15,7 @@ auth_manager = SpotifyClientCredentials(client_id='d67481b0a3134e21a4870f42f4988
 spotify = spotipy.Spotify(auth_manager=auth_manager)
 
 # Definir el enlace de la playlist
-link = 'https://open.spotify.com/playlist/7mRg9eazDDFtr3TVaBpVtD'
-
+link = ''
 # Extraer el ID de la playlist del enlace
 playlist_id = link.split('/')[-1]
 
@@ -70,14 +69,34 @@ def createFolder(title):
     
     return rutaPlaylistFolder
     
+    
+def downloadSong(songTitle, videoUrl, folderRoute):
+    youtube = YouTube(videoUrl)
+
+    streams = youtube.streams.filter(only_audio=True)
+    streams_with_abr = [(s, int(s.abr[:-4])) for s in streams if s.abr]
+    streams_sorted = sorted(streams_with_abr, key=lambda s: s[1])
+    stream = streams_sorted[-1][0]
+
+    ruta_descarga = r"{}".format(folderRoute)
+    if not os.path.exists(ruta_descarga):
+        os.makedirs(ruta_descarga)
+
+    outSong = stream.download(output_path=ruta_descarga)
+    base, ext = os.path.splitext(outSong)
+    song = base + '.mp3'
+    os.rename(outSong, song) 
+    return
 
 for song in songs:
     search = s(song[0] + ' - ' + song[1])
+
     # print('Title')
     # print(search.results[0].title)
     # print('Link')
     # print(search.results[0].watch_url)
     
     playlistFolder = createFolder(playlistTitle)
+    downloadSong(search.results[0].title,search.results[0].watch_url, playlistFolder)
 
 print(playlistFolder)
