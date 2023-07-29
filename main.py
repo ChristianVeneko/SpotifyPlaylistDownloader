@@ -11,7 +11,7 @@ s = Search
 class SpotifyPlaylisDownloader:
     def __init__(self, master):
         self.master = master
-        master.title("Descargador de YouTube")
+        master.title("Spotify Playlist Downloader")
         
         # Cargar el logo
         self.logo = tk.PhotoImage(file="logo.png")
@@ -20,11 +20,11 @@ class SpotifyPlaylisDownloader:
         
         # Crear los widgets de la interfaz
         self.logo_label = tk.Label(master, image=self.logo)
-        self.title_label = tk.Label(master, text="Descargador de YouTube", font=("Arial", 24))
-        self.url_label = tk.Label(master, text="URL del video:")
+        self.title_label = tk.Label(master, text="Spotify Playlist Downloader", font=("Arial", 24))
+        self.url_label = tk.Label(master, text="Playlist URL:")
         self.url_entry = tk.Entry(master, width=50)
-        self.download_button = tk.Button(master, text="Descargar", command=self.main)
-        self.progress_label = tk.Label(master, text="Progreso:")
+        self.download_button = tk.Button(master, text="Download", command=self.main)
+        self.progress_label = tk.Label(master, text="Progress:")
         self.progress_text = tk.Text(master, height=10, width=50)
         
         # Ubicar los widgets en la interfaz
@@ -121,7 +121,7 @@ class SpotifyPlaylisDownloader:
             self.progress_text.insert(tk.END, f"Downloading {search.results[0].title}\n")
             downloadSong(search.results[0].title,search.results[0].watch_url, playlistFolder)
             self.progress_text.insert(tk.END, f"Download finished of  {search.results[0].title}\n")
-        self.progress_text.insert(tk.END, f"Playlist download succefully finished\n")
+        self.progress_text.insert(tk.END, f"Playlist download succefully\n")
 root = tk.Tk()
 app = SpotifyPlaylisDownloader(root)
 root.mainloop()
