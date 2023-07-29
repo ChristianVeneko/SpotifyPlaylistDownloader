@@ -2,39 +2,60 @@ import spotipy
 import os
 from spotipy.oauth2 import SpotifyClientCredentials
 import tkinter as tk
+import customtkinter as ctk
 from pytube import YouTube
 from pytube import Search
+from PIL import Image, ImageTk
 
 # Crear Variables de Youtube y Search de youtube
 yt = YouTube
 s = Search
-class SpotifyPlaylisDownloader:
+class SpotifyPlaylistDownloader:
     def __init__(self, master):
         self.master = master
         master.title("Spotify Playlist Downloader")
+        self.frame = ctk.CTkFrame(master)
         
         # Cargar el logo
-        self.logo = tk.PhotoImage(file="logo.png")
-        self.logo = self.logo.subsample(10)
+        light_logo = Image.open("Logo.png") 
+        dark_logo = Image.open("logo.png")
+        self.logo = ctk.CTkImage(light_image=light_logo, dark_image=dark_logo, size=(150, 150))
+
+        # Crear los widgets de la interfaz
+        self.logo_label = ctk.CTkLabel(master, image=self.logo)
+        self.title_label = ctk.CTkLabel(master, text="Spotify Playlist Downloader", font=("Arial", 24))
+        self.url_label = ctk.CTkLabel(master=root,
+                     text="Playlist URL:",
+                     text_color="#fff",
+                     width=30,
+                     font=("Helvetica", 24))
+        self.url_entry = ctk.CTkEntry(master, width=300)
+        self.download_button = ctk.CTkButton(master, text="Download", command=self.main, width=250, height= 50, font=('Arial',18))
+        self.progress_label = ctk.CTkLabel(master=root,
+                     text="Progress:",
+                     text_color="#fff",
+                     width=30,
+                     font=("Helvetica", 24))
+        self.progress_text = ctk.CTkTextbox(master, height=200, width=400)
+        self.progress_text.configure(state="disabled")
 
         
-        # Crear los widgets de la interfaz
-        self.logo_label = tk.Label(master, image=self.logo)
-        self.title_label = tk.Label(master, text="Spotify Playlist Downloader", font=("Arial", 24))
-        self.url_label = tk.Label(master, text="Playlist URL:")
-        self.url_entry = tk.Entry(master, width=50)
-        self.download_button = tk.Button(master, text="Download", command=self.main)
-        self.progress_label = tk.Label(master, text="Progress:")
-        self.progress_text = tk.Text(master, height=10, width=50)
-        
         # Ubicar los widgets en la interfaz
-        self.logo_label.grid(row=0, column=0, columnspan=2, pady=10)
-        self.title_label.grid(row=1, column=0, columnspan=2, pady=10)
+        # Ubicar los widgets en la interfaz
+        self.logo_label.grid(row=0, column=0) 
+        self.frame.grid(row=0, column=0) 
+        self.title_label.grid(row=0, column=1) 
         self.url_label.grid(row=2, column=0, pady=10)
         self.url_entry.grid(row=2, column=1, pady=10)
         self.download_button.grid(row=3, column=0, columnspan=2, pady=10)
         self.progress_label.grid(row=4, column=0, pady=10)
         self.progress_text.grid(row=5, column=0, columnspan=2, pady=10)
+
+        # Configurar el peso de las columnas y las filas
+        self.master.grid_columnconfigure(0, weight=1) # La primera columna tiene un peso de 1
+        self.master.grid_columnconfigure(1, weight=2) # La segunda columna tiene un peso de 2
+        self.master.grid_rowconfigure(0, weight=1) # La primera fila tiene un peso de 1
+        self.master.grid_rowconfigure(5, weight=2) # La sexta fila tiene un peso de 2
         
     def main(self):
         # Crear un objeto de autenticación con el ID del cliente y el secreto del cliente
@@ -122,6 +143,6 @@ class SpotifyPlaylisDownloader:
             downloadSong(search.results[0].title,search.results[0].watch_url, playlistFolder)
             self.progress_text.insert(tk.END, f"Download finished of  {search.results[0].title}\n")
         self.progress_text.insert(tk.END, f"Playlist download succefully\n")
-root = tk.Tk()
-app = SpotifyPlaylisDownloader(root)
+root = ctk.CTk()
+app = SpotifyPlaylistDownloader(root)
 root.mainloop()
