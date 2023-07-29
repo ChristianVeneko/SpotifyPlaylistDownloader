@@ -6,6 +6,7 @@ import customtkinter as ctk
 from pytube import YouTube
 from pytube import Search
 from PIL import Image, ImageTk
+import shutil
 
 # Crear Variables de Youtube y Search de youtube
 yt = YouTube
@@ -117,9 +118,9 @@ class SpotifyPlaylistDownloader:
     
             return rutaPlaylistFolder   
 
-        def downloadSong(songTitle, videoUrl, folderRoute):
+        def downloadSong(title, songArtist, videoUrl, folderRoute):
             youtube = YouTube(videoUrl)
-
+            songTitle = title + ' - ' + songArtist
             streams = youtube.streams.filter(only_audio=True)
             streams_with_abr = [(s, int(s.abr[:-4])) for s in streams if s.abr]
             streams_sorted = sorted(streams_with_abr, key=lambda s: s[1])
@@ -132,7 +133,11 @@ class SpotifyPlaylistDownloader:
             outSong = stream.download(output_path=ruta_descarga)
             base, ext = os.path.splitext(outSong)
             song = base + '.mp3'
-            os.rename(outSong, song) 
+            songTitle = songTitle + '.mp3'
+            os.rename(outSong, song)
+            os.rename(song, songTitle)
+            shutil.move(songTitle, ruta_descarga)
+
             return
 
         for song in songs:
@@ -140,7 +145,7 @@ class SpotifyPlaylistDownloader:
 
             playlistFolder = createFolder(playlistTitle)
             self.progress_text.insert(tk.END, f"Downloading {search.results[0].title}\n")
-            downloadSong(search.results[0].title,search.results[0].watch_url, playlistFolder)
+            downloadSong(song[0],song[1],search.results[0].watch_url, playlistFolder)
             self.progress_text.insert(tk.END, f"Download finished of  {search.results[0].title}\n")
         self.progress_text.insert(tk.END, f"Playlist download succefully\n")
 root = ctk.CTk()
