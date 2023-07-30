@@ -38,7 +38,7 @@ class SpotifyPlaylistDownloader:
                      width=30,
                      font=("Helvetica", 24))
         self.progress_text = ctk.CTkTextbox(master, height=200, width=400)
-        self.progress_text.configure(state="disabled")
+        # self.progress_text.configure(state="disabled")
 
         
         # Ubicar los widgets en la interfaz
@@ -144,10 +144,10 @@ class SpotifyPlaylistDownloader:
             search = s(song[0] + ' - ' + song[1])
 
             playlistFolder = createFolder(playlistTitle)
-            self.progress_text.insert(tk.END, f"Downloading {search.results[0].title}\n")
+            self.progress_text.insert(ctk.END, f"Downloading {search.results[0].title}\n")
             downloadSong(song[0],song[1],search.results[0].watch_url, playlistFolder)
-            self.progress_text.insert(tk.END, f"Download finished of  {search.results[0].title}\n")
-        self.progress_text.insert(tk.END, f"Playlist download succefully\n")
+            self.progress_text.insert(ctk.END, f"Download finished of  {search.results[0].title}\n")
+        self.progress_text.insert(ctk.END, f"Playlist download succefully\n")
 root = ctk.CTk()
 app = SpotifyPlaylistDownloader(root)
 root.mainloop()
