@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 import shutil
 import threading
 import slugify
-
+import re
 
 # Crear Variables de Youtube y Search de youtube
 yt = YouTube
@@ -172,15 +172,32 @@ class SpotifyPlaylistDownloader:
 
         self.master.after(5000, self.downloadNextSong, songIndex + 1, songs, playlistTitle)
         
-    
+    def validateUrl(self, url):
+        url_pattern = re.compile(r'https://open.spotify.com/playlist/[a-zA-Z0-9]+')
+        
+        if not url_pattern.match(url):
+            self.progress_text.insert(ctk.END, f"ERROR INVALID URL\n")
+            return False
+        
+        playlistID = self.getPlaylistID(url)
+        try:
+            playlist = self.spotify.playlist(playlistID)
+  
+        except spotipy.client.SpotifyException:
+            self.progress_text.insert(ctk.END, f"ERROR INVALID PLAYLIST\n")
+            
+            return False
+        return True
     def main(self):
         # Definir el enlace de la playlist
         link = self.url_entry.get() 
-        playlistID = self.getPlaylistID(link)
-        playlistData = self.spotify.playlist(playlistID)
-        playlistName = self.getPlaylistTitle(playlistData)
-        songs = self.getPlaylistTracks(link)
-        self.master.after(1, self.downloadNextSong, 0, songs, playlistName) 
+        if(self.validateUrl(link) == True):
+            playlistID = self.getPlaylistID(link)
+            playlistData = self.spotify.playlist(playlistID)
+            playlistName = self.getPlaylistTitle(playlistData)
+            songs = self.getPlaylistTracks(link)
+            self.master.after(1, self.downloadNextSong, 0, songs, playlistName) 
+        
 root = ctk.CTk()
 app = SpotifyPlaylistDownloader(root)
 root.mainloop()
