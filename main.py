@@ -56,6 +56,7 @@ class SpotifyPlaylistDownloader:
         self.master.grid_columnconfigure(1, weight=2)
         self.master.grid_rowconfigure(0, weight=1) 
         self.master.grid_rowconfigure(5, weight=2) 
+        
     def createFolder(self, title):
         rutaActual = os.getcwd()
 
@@ -88,24 +89,24 @@ class SpotifyPlaylistDownloader:
         streams_sorted = sorted(streams_with_abr, key=lambda s: s[1])
         stream = streams_sorted[-1][0]
 
-        ruta_descarga = folderRoute  # Utiliza la ruta de la carpeta de "Descargas"
-        if not os.path.exists(ruta_descarga):
-            os.makedirs(ruta_descarga)
+        downloadRoute = folderRoute
+        if not os.path.exists(downloadRoute):
+            os.makedirs(downloadRoute)
 
         mp3_filename = songTitle + '.mp3'
         self.progress_text.insert(ctk.END, f"Downloading {mp3_filename} ... \n")
-        mp3_path = os.path.join(ruta_descarga, mp3_filename)
+        mp3_path = os.path.join(downloadRoute, mp3_filename)
     
         if os.path.exists(mp3_path):
             self.progress_text.insert(ctk.END, f"{mp3_filename} already exists. Skipping download.\n")
             return
 
-        outSong = stream.download(output_path=ruta_descarga)
+        outSong = stream.download(output_path=downloadRoute)
         base, ext = os.path.splitext(outSong)
         song = base + '.mp3'
         os.rename(outSong, song)
         os.rename(song, mp3_filename)
-        shutil.move(mp3_filename, ruta_descarga)
+        shutil.move(mp3_filename, downloadRoute)
 
         self.progress_text.insert(ctk.END, f"Downloaded {mp3_filename}\n")
         return
@@ -147,7 +148,7 @@ class SpotifyPlaylistDownloader:
         playlistTitle = playlist_data["name"]
         # Recorrer los elementos de la playlist por lotes de 50
         while offset < total:
-        # Obtener los elementos de la playlist con el offset y el límite actuales
+            # Obtener los elementos de la playlist con el offset y el límite actuales
             results = spotify.playlist_items(playlist_id, offset=offset, limit=limit)
             # Recorrer los resultados y extraer los datos relevantes
             for item in results['items']:
@@ -156,9 +157,7 @@ class SpotifyPlaylistDownloader:
                 songs.append((song_name, artist_name))
             offset += limit     
         
-        self.master.after(1, self.downloadNextSong, 0, songs, playlistTitle)  
-        
-        self.progress_text.insert(ctk.END, f"Playlist download successfully\n")   
+        self.master.after(1, self.downloadNextSong, 0, songs, playlistTitle) 
 root = ctk.CTk()
 app = SpotifyPlaylistDownloader(root)
 root.mainloop()
