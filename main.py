@@ -27,7 +27,7 @@ class SpotifyPlaylistDownloader:
         self.logo = ctk.CTkImage(light_image=light_logo, dark_image=dark_logo, size=(150, 150))
 
         # Crear los widgets de la interfaz
-        self.logo_label = ctk.CTkLabel(master, image=self.logo)
+        self.logo_label = ctk.CTkLabel(master,text=' ', image=self.logo)
         self.title_label = ctk.CTkLabel(master, text="Spotify Playlist Downloader", font=("Arial", 24))
         self.url_label = ctk.CTkLabel(master=root,
                      text="Playlist URL:",
