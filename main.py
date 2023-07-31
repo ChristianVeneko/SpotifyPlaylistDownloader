@@ -8,6 +8,8 @@ from pytube import Search
 from PIL import Image, ImageTk
 import shutil
 import threading
+import slugify
+
 
 # Crear Variables de Youtube y Search de youtube
 yt = YouTube
@@ -137,8 +139,9 @@ class SpotifyPlaylistDownloader:
         downloadRoute = folderRoute
         if not os.path.exists(downloadRoute):
             os.makedirs(downloadRoute)
-
-        mp3_filename = songTitle + '.mp3'
+        
+        mp3_filenameStr = str(songTitle)
+        mp3_filename = slugify.slugify(mp3_filenameStr)  + '.mp3'
         self.progress_text.insert(ctk.END, f"Downloading {mp3_filename} ... \n")
         mp3_path = os.path.join(downloadRoute, mp3_filename)
     
@@ -148,7 +151,8 @@ class SpotifyPlaylistDownloader:
 
         outSong = stream.download(output_path=downloadRoute)
         base, ext = os.path.splitext(outSong)
-        song = base + '.mp3'
+        songName = str(base) 
+        song = slugify.slugify(songName)+ '.mp3'
         os.rename(outSong, song)
         os.rename(song, mp3_filename)
         shutil.move(mp3_filename, downloadRoute)
