@@ -57,6 +57,51 @@ class SpotifyPlaylistDownloader:
         self.master.grid_rowconfigure(0, weight=1) 
         self.master.grid_rowconfigure(5, weight=2) 
         
+        # Inicializa los datos de la api de spotify
+        self.initSpotify()
+    
+    def initSpotify(self):
+        """Inicializa la conexión con la API de Spotify"""
+        self.auth_manager = SpotifyClientCredentials(client_id='d67481b0a3134e21a4870f42f4988bf3',
+                                                     client_secret='a3bd5765d10a4b66991097d607e4cde9')
+        self.spotify = spotipy.Spotify(auth_manager=self.auth_manager)
+    
+    def getPlaylistTracks(self, playlistUrl):
+        playlistID = self.getPlaylistID(playlistUrl)
+        # Crear una lista vacía para almacenar las canciones
+        tracks = []
+        
+        # Inicializar el offset y el límite
+        offset = 0
+        limit = 50
+        # Obtener el número total de elementos de la playlist
+        total = self.spotify.playlist_items(playlistID, limit=1)['total']
+        # Recorrer los elementos de la playlist por lotes de 50
+        while offset < total:
+            results = self.spotify.playlist_items(playlistID, offset=offset, limit = limit)
+            tracks.extend(self.extrackTracks(results['items']))
+            offset += limit
+            
+        return tracks
+            
+    
+    def getPlaylistTitle(self, data):
+        return data["name"]
+    
+    def getPlaylistID(self, url):
+        # Extraer el ID de la playlist del enlace
+        return url.split('/')[-1]
+    
+    def extrackTracks(self, items):
+        tracks = []
+        # Recorrer los resultados y extraer los datos relevantes
+        for item in items:
+            track = item['track']
+            name = track['name']
+            artist = track['artists'][0]['name']
+            tracks.append((name, artist))
+        return tracks
+        
     def createFolder(self, title):
         rutaActual = os.getcwd()
 
@@ -112,52 +157,26 @@ class SpotifyPlaylistDownloader:
         return
     
     def downloadNextSong(self, songIndex, songs, playlistTitle):
+        if songIndex >= len(songs):
+            return
         song = songs[songIndex]
         search = s(song[0] + ' - ' + song[1])
         playlistFolder = self.createFolder(playlistTitle)
 
         # Start the download process for the current song
-        download_thread = threading.Thread(target=self.downloadSong, args=(song[0], song[1], search.results[0].watch_url, playlistFolder))
-        download_thread.start()
+        self.downloadSong(song[0], song[1], search.results[0].watch_url, playlistFolder)
 
-        self.master.after(1, self.downloadNextSong, songIndex + 1, songs, playlistTitle)
+        self.master.after(5000, self.downloadNextSong, songIndex + 1, songs, playlistTitle)
         
+    
     def main(self):
-        # Crear un objeto de autenticación con el ID del cliente y el secreto del cliente
-        auth_manager = SpotifyClientCredentials(client_id='d67481b0a3134e21a4870f42f4988bf3', client_secret='a3bd5765d10a4b66991097d607e4cde9')
-        # Crear un objeto de la API de Spotify con el objeto de autenticación
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
         # Definir el enlace de la playlist
-        link = self.url_entry.get()
-
-        # Extraer el ID de la playlist del enlace
-        playlist_id = link.split('/')[-1]
-
-        # Crear una lista vacía para almacenar las canciones
-        songs = []
-        
-        # Inicializar el offset y el límite
-        offset = 0
-        limit = 50
-
-        # Obtener el número total de elementos de la playlist
-        total = spotify.playlist_items(playlist_id, limit=1)['total']
-
-        # Obtener el titulo de la playlist
-        playlist_data = spotify.playlist(playlist_id)
-        playlistTitle = playlist_data["name"]
-        # Recorrer los elementos de la playlist por lotes de 50
-        while offset < total:
-            # Obtener los elementos de la playlist con el offset y el límite actuales
-            results = spotify.playlist_items(playlist_id, offset=offset, limit=limit)
-            # Recorrer los resultados y extraer los datos relevantes
-            for item in results['items']:
-                song_name = item['track']['name']
-                artist_name = item['track']['artists'][0]['name']   
-                songs.append((song_name, artist_name))
-            offset += limit     
-        
-        self.master.after(1, self.downloadNextSong, 0, songs, playlistTitle) 
+        link = self.url_entry.get() 
+        playlistID = self.getPlaylistID(link)
+        playlistData = self.spotify.playlist(playlistID)
+        playlistName = self.getPlaylistTitle(playlistData)
+        songs = self.getPlaylistTracks(link)
+        self.master.after(1, self.downloadNextSong, 0, songs, playlistName) 
 root = ctk.CTk()
 app = SpotifyPlaylistDownloader(root)
 root.mainloop()
