@@ -7,10 +7,12 @@ from pytube import YouTube
 from pytube import Search
 from PIL import Image, ImageTk
 import shutil
+import threading
 
 # Crear Variables de Youtube y Search de youtube
 yt = YouTube
 s = Search
+
 class SpotifyPlaylistDownloader:
     def __init__(self, master):
         self.master = master
@@ -39,10 +41,7 @@ class SpotifyPlaylistDownloader:
                      font=("Helvetica", 24))
         self.progress_text = ctk.CTkTextbox(master, height=200, width=400)
         # self.progress_text.configure(state="disabled")
-
         
-        # Ubicar los widgets en la interfaz
-        # Ubicar los widgets en la interfaz
         self.logo_label.grid(row=0, column=0) 
         self.frame.grid(row=0, column=0) 
         self.title_label.grid(row=0, column=1) 
@@ -53,10 +52,74 @@ class SpotifyPlaylistDownloader:
         self.progress_text.grid(row=5, column=0, columnspan=2, pady=10)
 
         # Configurar el peso de las columnas y las filas
-        self.master.grid_columnconfigure(0, weight=1) # La primera columna tiene un peso de 1
-        self.master.grid_columnconfigure(1, weight=2) # La segunda columna tiene un peso de 2
-        self.master.grid_rowconfigure(0, weight=1) # La primera fila tiene un peso de 1
-        self.master.grid_rowconfigure(5, weight=2) # La sexta fila tiene un peso de 2
+        self.master.grid_columnconfigure(0, weight=1) 
+        self.master.grid_columnconfigure(1, weight=2)
+        self.master.grid_rowconfigure(0, weight=1) 
+        self.master.grid_rowconfigure(5, weight=2) 
+    def createFolder(self, title):
+        rutaActual = os.getcwd()
+
+        # Nombre de la carpeta que quieres crear
+        downloadFolder = "Downloads"
+
+        # Ruta completa de la carpeta que quieres crear
+        rutaDownloadFolder = os.path.join(rutaActual, downloadFolder)
+        
+        # Crear la carpeta si no existe
+        if not os.path.exists(rutaDownloadFolder):
+            os.mkdir(rutaDownloadFolder)
+
+        playlistFolder = title
+
+        # Ruta completa de la subcarpeta que quieres crear
+        rutaPlaylistFolder = os.path.join(rutaDownloadFolder, playlistFolder)
+
+        # Crear la subcarpeta si no existe
+        if not os.path.exists(rutaPlaylistFolder):
+            os.mkdir(rutaPlaylistFolder)
+    
+        return rutaPlaylistFolder
+    
+    def downloadSong(self, title, songArtist, videoUrl, folderRoute):
+        youtube = YouTube(videoUrl)
+        songTitle = title + ' - ' + songArtist
+        streams = youtube.streams.filter(only_audio=True)
+        streams_with_abr = [(s, int(s.abr[:-4])) for s in streams if s.abr]
+        streams_sorted = sorted(streams_with_abr, key=lambda s: s[1])
+        stream = streams_sorted[-1][0]
+
+        ruta_descarga = folderRoute  # Utiliza la ruta de la carpeta de "Descargas"
+        if not os.path.exists(ruta_descarga):
+            os.makedirs(ruta_descarga)
+
+        mp3_filename = songTitle + '.mp3'
+        self.progress_text.insert(ctk.END, f"Downloading {mp3_filename} ... \n")
+        mp3_path = os.path.join(ruta_descarga, mp3_filename)
+    
+        if os.path.exists(mp3_path):
+            self.progress_text.insert(ctk.END, f"{mp3_filename} already exists. Skipping download.\n")
+            return
+
+        outSong = stream.download(output_path=ruta_descarga)
+        base, ext = os.path.splitext(outSong)
+        song = base + '.mp3'
+        os.rename(outSong, song)
+        os.rename(song, mp3_filename)
+        shutil.move(mp3_filename, ruta_descarga)
+
+        self.progress_text.insert(ctk.END, f"Downloaded {mp3_filename}\n")
+        return
+    
+    def downloadNextSong(self, songIndex, songs, playlistTitle):
+        song = songs[songIndex]
+        search = s(song[0] + ' - ' + song[1])
+        playlistFolder = self.createFolder(playlistTitle)
+
+        # Start the download process for the current song
+        download_thread = threading.Thread(target=self.downloadSong, args=(song[0], song[1], search.results[0].watch_url, playlistFolder))
+        download_thread.start()
+
+        self.master.after(1, self.downloadNextSong, songIndex + 1, songs, playlistTitle)
         
     def main(self):
         # Crear un objeto de autenticación con el ID del cliente y el secreto del cliente
@@ -91,63 +154,11 @@ class SpotifyPlaylistDownloader:
                 song_name = item['track']['name']
                 artist_name = item['track']['artists'][0]['name']   
                 songs.append((song_name, artist_name))
-            offset += limit
-
-        # Funcion para crear las carpetas de las canciones
-        def createFolder(title):
-            rutaActual = os.getcwd()
-
-            # Nombre de la carpeta que quieres crear
-            downloadFolder = "Downloads"
-
-            # Ruta completa de la carpeta que quieres crear
-            rutaDownloadFolder = os.path.join(rutaActual, downloadFolder)
+            offset += limit     
         
-            # Crear la carpeta si no existe
-            if not os.path.exists(rutaDownloadFolder):
-                os.mkdir(rutaDownloadFolder)
-
-            playlistFolder = title
-
-            # Ruta completa de la subcarpeta que quieres crear
-            rutaPlaylistFolder = os.path.join(rutaDownloadFolder, playlistFolder)
-
-            # Crear la subcarpeta si no existe
-            if not os.path.exists(rutaPlaylistFolder):
-                os.mkdir(rutaPlaylistFolder)
-    
-            return rutaPlaylistFolder   
-
-        def downloadSong(title, songArtist, videoUrl, folderRoute):
-            youtube = YouTube(videoUrl)
-            songTitle = title + ' - ' + songArtist
-            streams = youtube.streams.filter(only_audio=True)
-            streams_with_abr = [(s, int(s.abr[:-4])) for s in streams if s.abr]
-            streams_sorted = sorted(streams_with_abr, key=lambda s: s[1])
-            stream = streams_sorted[-1][0]
-
-            ruta_descarga = r"{}".format(folderRoute)
-            if not os.path.exists(ruta_descarga):
-                os.makedirs(ruta_descarga)
-            
-            outSong = stream.download(output_path=ruta_descarga)
-            base, ext = os.path.splitext(outSong)
-            song = base + '.mp3'
-            songTitle = songTitle + '.mp3'
-            os.rename(outSong, song)
-            os.rename(song, songTitle)
-            shutil.move(songTitle, ruta_descarga)
-
-            return
-
-        for song in songs:
-            search = s(song[0] + ' - ' + song[1])
-
-            playlistFolder = createFolder(playlistTitle)
-            self.progress_text.insert(ctk.END, f"Downloading {search.results[0].title}\n")
-            downloadSong(song[0],song[1],search.results[0].watch_url, playlistFolder)
-            self.progress_text.insert(ctk.END, f"Download finished of  {search.results[0].title}\n")
-        self.progress_text.insert(ctk.END, f"Playlist download succefully\n")
+        self.master.after(1, self.downloadNextSong, 0, songs, playlistTitle)  
+        
+        self.progress_text.insert(ctk.END, f"Playlist download successfully\n")   
 root = ctk.CTk()
 app = SpotifyPlaylistDownloader(root)
 root.mainloop()
