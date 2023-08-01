@@ -3,7 +3,6 @@ import os
 from spotipy.oauth2 import SpotifyClientCredentials
 from pytube import YouTube
 from pytube import Search
-from PIL import Image, ImageTk
 import shutil
 import threading
 import slugify
@@ -119,13 +118,14 @@ class SpotifyPlaylistDownloader:
         if songIndex >= len(songs):
             return
         song = songs[songIndex]
-        search = s(song[0] + ' - ' + song[1])
+        print(song)
+        
+        search = s(song[0] + ' ' + song[1])
         playlistFolder = self.createFolder(playlistTitle)
-
         # Start the download process for the current song
         self.downloadSong(song[0], song[1], search.results[0].watch_url, playlistFolder)
 
-        self.master.after(5000, self.downloadNextSong, songIndex + 1, songs, playlistTitle)
+        self.downloadNextSong(songIndex + 1, songs, playlistTitle)
         
     def validateUrl(self, url):
         url_pattern = re.compile(r'https://open.spotify.com/playlist/[a-zA-Z0-9]+')
@@ -153,9 +153,7 @@ class SpotifyPlaylistDownloader:
             playlistName = self.getPlaylistTitle(playlistData)
             songs = self.getPlaylistTracks(link)
             
-            i = 0
-            for song in songs:
-                self.downloadNextSong(song)
+            self.downloadNextSong(0, songs, playlistName)
                 
 
 app = SpotifyPlaylistDownloader()
