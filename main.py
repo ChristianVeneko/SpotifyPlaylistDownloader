@@ -1,8 +1,6 @@
 import spotipy
 import os
 from spotipy.oauth2 import SpotifyClientCredentials
-import tkinter as tk
-import customtkinter as ctk
 from pytube import YouTube
 from pytube import Search
 from PIL import Image, ImageTk
@@ -16,50 +14,7 @@ yt = YouTube
 s = Search
 
 class SpotifyPlaylistDownloader:
-    def __init__(self, master):
-        self.master = master
-        master.title("Spotify Playlist Downloader")
-        self.frame = ctk.CTkFrame(master)
-        
-        # Cargar el logo
-        light_logo = Image.open("Logo.png") 
-        dark_logo = Image.open("logo.png")
-        self.logo = ctk.CTkImage(light_image=light_logo, dark_image=dark_logo, size=(150, 150))
-
-        # Crear los widgets de la interfaz
-        self.logo_label = ctk.CTkLabel(master,text=' ', image=self.logo)
-        self.title_label = ctk.CTkLabel(master, text="Spotify Playlist Downloader", font=("Arial", 24))
-        self.url_label = ctk.CTkLabel(master=root,
-                     text="Playlist URL:",
-                     text_color="#fff",
-                     width=30,
-                     font=("Helvetica", 24))
-        self.url_entry = ctk.CTkEntry(master, width=300)
-        self.download_button = ctk.CTkButton(master, text="Download", command=self.main, width=250, height= 50, font=('Arial',18))
-        self.progress_label = ctk.CTkLabel(master=root,
-                     text="Progress:",
-                     text_color="#fff",
-                     width=30,
-                     font=("Helvetica", 24))
-        self.progress_text = ctk.CTkTextbox(master, height=200, width=400)
-        # self.progress_text.configure(state="disabled")
-        
-        self.logo_label.grid(row=0, column=0) 
-        self.frame.grid(row=0, column=0) 
-        self.title_label.grid(row=0, column=1) 
-        self.url_label.grid(row=2, column=0, pady=10)
-        self.url_entry.grid(row=2, column=1, pady=10)
-        self.download_button.grid(row=3, column=0, columnspan=2, pady=10)
-        self.progress_label.grid(row=4, column=0, pady=10)
-        self.progress_text.grid(row=5, column=0, columnspan=2, pady=10)
-
-        # Configurar el peso de las columnas y las filas
-        self.master.grid_columnconfigure(0, weight=1) 
-        self.master.grid_columnconfigure(1, weight=2)
-        self.master.grid_rowconfigure(0, weight=1) 
-        self.master.grid_rowconfigure(5, weight=2) 
-        
-        # Inicializa los datos de la api de spotify
+    def __init__(self):
         self.initSpotify()
     
     def initSpotify(self):
@@ -142,11 +97,11 @@ class SpotifyPlaylistDownloader:
         
         mp3_filenameStr = str(songTitle)
         mp3_filename = slugify.slugify(mp3_filenameStr)  + '.mp3'
-        self.progress_text.insert(ctk.END, f"Downloading {mp3_filename} ... \n")
+        print(f"Downloading {mp3_filename} ... \n")
         mp3_path = os.path.join(downloadRoute, mp3_filename)
     
         if os.path.exists(mp3_path):
-            self.progress_text.insert(ctk.END, f"{mp3_filename} already exists. Skipping download.\n")
+            print(f"{mp3_filename} already exists. Skipping download.\n")
             return
 
         outSong = stream.download(output_path=downloadRoute)
@@ -157,7 +112,7 @@ class SpotifyPlaylistDownloader:
         os.rename(song, mp3_filename)
         shutil.move(mp3_filename, downloadRoute)
 
-        self.progress_text.insert(ctk.END, f"Downloaded {mp3_filename}\n")
+        print(f"Downloaded {mp3_filename}\n")
         return
     
     def downloadNextSong(self, songIndex, songs, playlistTitle):
@@ -176,7 +131,7 @@ class SpotifyPlaylistDownloader:
         url_pattern = re.compile(r'https://open.spotify.com/playlist/[a-zA-Z0-9]+')
         
         if not url_pattern.match(url):
-            self.progress_text.insert(ctk.END, f"ERROR INVALID URL\n")
+            print(f"ERROR INVALID URL\n")
             return False
         
         playlistID = self.getPlaylistID(url)
@@ -184,20 +139,24 @@ class SpotifyPlaylistDownloader:
             playlist = self.spotify.playlist(playlistID)
   
         except spotipy.client.SpotifyException:
-            self.progress_text.insert(ctk.END, f"ERROR INVALID PLAYLIST\n")
+            print('f"ERROR INVALID PLAYLIST\n"')
             
             return False
         return True
     def main(self):
         # Definir el enlace de la playlist
-        link = self.url_entry.get() 
+        print
+        link = input() 
         if(self.validateUrl(link) == True):
             playlistID = self.getPlaylistID(link)
             playlistData = self.spotify.playlist(playlistID)
             playlistName = self.getPlaylistTitle(playlistData)
             songs = self.getPlaylistTracks(link)
-            self.master.after(1, self.downloadNextSong, 0, songs, playlistName) 
-        
-root = ctk.CTk()
-app = SpotifyPlaylistDownloader(root)
-root.mainloop()
+            
+            i = 0
+            for song in songs:
+                self.downloadNextSong(song)
+                
+
+app = SpotifyPlaylistDownloader()
+app.main()
